@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
-import Github from './Github';
+import Github from './Components/Github';
 import Headers from './Components/Headers';
 import Auth0Lock from 'auth0-lock';
+import cors from 'cors';
 
 class App extends Component {
 
@@ -37,6 +38,9 @@ class App extends Component {
       this.setProfile(authResult.idToken, profile);
     });
       });
+
+      this.getProfile();
+
   }
 
   setProfile(idToken,profile) {
@@ -49,18 +53,48 @@ class App extends Component {
     });
   }
 
+
+  getProfile() {
+    if(localStorage.getItem('idToken') != null) {
+      this.setState({
+        idToken: localStorage.getItem('idToken'),
+        profile: JSON.parse(localStorage.getItem('profile'))
+      }, () => {
+        console.log(this.state);
+      });
+    }
+  }
+
   showLock(){
     this.lock.show();
   }
 
+  logout() {
+    this.setState({
+      idToken: '',
+      profile: ''
+    }, () => {
+      localStorage.removeItem('idToken');
+      localStorage.removeItem('profile');
+    });
+  }
 
   render() {
+    let gitty;
+    if(this.state.idToken){
+      gitty = <Github />
+    } else {
+      gitty = "Click on Login to view Github Viewer"
+    }
     return (
       <div className="App">
         <Headers
+          lock={this.lock}
+          idToken={this.state.idToken}
+          onLogout={this.logout.bind(this)}
           onLogin={this.showLock.bind(this)}
           />
-        <Github />
+        {gitty}
       </div>
     );
   }
